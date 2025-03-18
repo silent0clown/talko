@@ -19,6 +19,7 @@ set(SRC_FILES
 add_library(TalkoServerLib STATIC ${SRC_FILES})
 
 
+
 # 包含头文件路径
 target_include_directories(TalkoServerLib PUBLIC 
     ${ROOT_PATH}/src
@@ -27,3 +28,9 @@ target_include_directories(TalkoServerLib PUBLIC
     ${ROOT_PATH}/src/log
     ${ROOT_PATH}/src/service
 )
+
+# 生成可执行文件
+add_executable(TalkoServer main.cpp)
+
+# 链接 src 目录生成的库
+target_link_libraries(TalkoServer PRIVATE TalkoServerLib)

@@ -9,6 +9,7 @@ for arg in "$@"; do
     case $arg in
         -test)
             BUILD_TESTS=true
+            BUILD_TYPE="Debug"
             ;;
         -Debug)
             BUILD_TYPE="Debug"
