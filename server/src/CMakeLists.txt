@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.15)
 project(TalkoServerSrc)
 
 # 添加主项目源码
@@ -20,4 +20,10 @@ add_library(TalkoServerLib STATIC ${SRC_FILES})
 
 
 # 包含头文件路径
-target_include_directories(TalkoServerLib PUBLIC ${ROOT_PATH}/src)
+target_include_directories(TalkoServerLib PUBLIC 
+    ${ROOT_PATH}/src
+    ${ROOT_PATH}/src/config
+    ${ROOT_PATH}/src/database
+    ${ROOT_PATH}/src/log
+    ${ROOT_PATH}/src/service
+)

@@ -1,6 +1,10 @@
 # test/CMakeLists.txt
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.15)
 project(TalkoServerTests)
+
+# 设置 C++ 标准
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # 添加 GoogleTest 头文件路径
 include_directories(${ROOT_PATH}/third_party/googletest-dist/include)
@@ -27,3 +31,5 @@ target_link_libraries(TalkoTests
 # 启用测试
 enable_testing()
 add_test(NAME TalkoTests COMMAND TalkoTests)
+
+install(TARGETS TalkoTests DESTINATION test)

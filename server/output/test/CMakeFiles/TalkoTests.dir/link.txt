@@ -1,1 +1,0 @@
-/usr/bin/c++ -O3 -DNDEBUG CMakeFiles/TalkoTests.dir/TestMain.cpp.o CMakeFiles/TalkoTests.dir/TestLog.cpp.o -o TalkoTests   -L/home/ubuntu/project/talko/server/third_party/googletest-dist/lib  -Wl,-rpath,/home/ubuntu/project/talko/server/third_party/googletest-dist/lib ../src/libTalkoServerLib.a -lgtest -lgtest_main 

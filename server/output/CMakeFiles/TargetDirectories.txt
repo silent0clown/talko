@@ -1,8 +1,0 @@
-/home/ubuntu/project/talko/server/output/CMakeFiles/edit_cache.dir
-/home/ubuntu/project/talko/server/output/CMakeFiles/rebuild_cache.dir
-/home/ubuntu/project/talko/server/output/src/CMakeFiles/TalkoServerLib.dir
-/home/ubuntu/project/talko/server/output/src/CMakeFiles/edit_cache.dir
-/home/ubuntu/project/talko/server/output/src/CMakeFiles/rebuild_cache.dir
-/home/ubuntu/project/talko/server/output/test/CMakeFiles/TalkoTests.dir
-/home/ubuntu/project/talko/server/output/test/CMakeFiles/edit_cache.dir
-/home/ubuntu/project/talko/server/output/test/CMakeFiles/rebuild_cache.dir

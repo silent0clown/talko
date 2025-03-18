@@ -24,7 +24,7 @@ for arg in "$@"; do
 done
 
 # 创建构建目录
-BUILD_DIR="output"
+BUILD_DIR="build"
 if [ ! -d "$BUILD_DIR" ]; then
     mkdir -p "$BUILD_DIR"
 else
@@ -48,7 +48,15 @@ fi
 # 编译项目
 make -j$(nproc)
 
+# 执行安装（如果有安装规则）
+make install
+
 # 返回项目根目录
 cd ..
+
+# 清空构建目录
+rm -rf "$BUILD_DIR"/*
+rm -rf "$BUILD_DIR"/.* 2>/dev/null
+rmdir -p "$BUILD_DIR"
 
 echo "构建完成！"
