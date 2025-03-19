@@ -1,0 +1,24 @@
+version: '3.1'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql-server
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}   # 设置 MySQL root 用户的密码
+      MYSQL_DATABASE: ${MYSQL_DATABASE}             # 设置初始化的数据库名称
+      MYSQL_USER: ${MYSQL_USER}                     # 设置 MySQL 用户
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}             # 设置 MySQL 用户密码
+    ports:
+      - "127.0.0.1:6603:33060"  # 仅绑定宿主机的 127.0.0.1 地址上的 6603 端口
+    volumes:
+      - ./table_init.sql:/docker-entrypoint-initdb.d/table_init.sql   # 将 SQL 初始化脚本挂载到容器内
+      - ${DATA_DIR}:/var/lib/mysql   # 将宿主机的数据库数据目录挂载到容器内
+    networks:
+      - mysql_network
+    command: --bind-address=0.0.0.0  # 仍然让 MySQL 容器监听所有接口，但宿主机会限制只能本地访问
+    restart: always  # 容器崩溃时自动重启
+
+networks:
+  mysql_network:
+    driver: bridge

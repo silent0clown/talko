@@ -1,81 +1,94 @@
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 #include "TalkLog.h"
 #include <fstream>
-#include <sstream>
+#include <thread>
+#include <vector>
 
-// // Test case for the TalkLog singleton
-// TEST(TalkLogTest, SingletonInstance) {
-//     TalkLog& log1 = TalkLog::getInstance();
-//     TalkLog& log2 = TalkLog::getInstance();
-    
-//     // Ensure both instances are the same
-//     EXPECT_EQ(&log1, &log2);
+class TalkLogTest : public ::testing::Test {
+protected:
+    void SetUp() override {
+        logFile = "test_talklog.log";
+        TalkLog::getInstance().setLogFile(logFile);
+    }
+
+    void TearDown() override {
+        std::remove(logFile.c_str());
+    }
+
+    std::string logFile;
+};
+
+// 测试日志级别过滤
+TEST_F(TalkLogTest, LogLevelFiltering) {
+    TalkLog::getInstance().setLogLevel(LogLevel::INFO);
+    TALKO_LOG_DEBUG("This should not appear in log");
+    TALKO_LOG_INFO("This should appear in log");
+    TALKO_LOG_ERROR("This should also appear in log");
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    std::ifstream file(logFile);
+    std::string line;
+    int count = 0;
+    while (std::getline(file, line)) {
+        count++;
+    }
+    file.close();
+    EXPECT_EQ(count, 2);  // 只有 INFO 和 ERROR 级别的日志应被记录
+}
+
+// // 测试日志文件创建
+// TEST_F(TalkLogTest, LogFileCreation) {
+//     EXPECT_TRUE(std::ifstream(logFile).good());
 // }
 
-// // Test case for setting log file
-// TEST(TalkLogTest, SetLogFile) {
-//     TalkLog& log = TalkLog::getInstance();
-//     log.setLogFile("test.log");
+// // 测试多线程写入
+// TEST_F(TalkLogTest, ConcurrentLogging) {
+//     constexpr int THREAD_COUNT = 10;
+//     constexpr int LOGS_PER_THREAD = 50;
+//     TalkLog::getInstance().setLogLevel(LogLevel::INFO);
 
-//     std::ifstream logFile("test.log");
-//     ASSERT_TRUE(logFile.is_open());
+//     std::vector<std::thread> threads;
+//     for (int i = 0; i < THREAD_COUNT; ++i) {
+//         threads.emplace_back([]() {
+//             for (int j = 0; j < LOGS_PER_THREAD; ++j) {
+//                 TALKO_LOG_INFO("Thread log entry");
+//             }
+//         });
+//     }
+//     for (auto& t : threads) {
+//         t.join();
+//     }
+//     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-//     logFile.close();
-//     remove("test.log");  // Clean up
+//     std::ifstream file(logFile);
+//     int count = 0;
+//     std::string line;
+//     while (std::getline(file, line)) {
+//         count++;
+//     }
+//     file.close();
+//     EXPECT_EQ(count, THREAD_COUNT * LOGS_PER_THREAD);
 // }
 
-// // Test case for logging to console and file
-// TEST(TalkLogTest, LogToConsoleAndFile) {
-//     TalkLog& log = TalkLog::getInstance();
-//     log.setLogFile("test.log");
-//     log.setLogLevel(LogLevel::DEBUG);
-
-//     // Redirecting the std::cout to capture the console output
-//     std::ostringstream consoleOutput;
-//     std::streambuf* originalCout = std::cout.rdbuf(consoleOutput.rdbuf());
-
-//     // Log messages
-//     LOG_INFO("Test log message");
-//     LOG_WARN("Test warning message");
-
-//     // Check if the console output contains the log message
-//     EXPECT_NE(consoleOutput.str().find("Test log message"), std::string::npos);
-//     EXPECT_NE(consoleOutput.str().find("Test warning message"), std::string::npos);
-
-//     // Check if the file contains the log message
-//     std::ifstream logFile("test.log");
-//     std::string fileContent((std::istreambuf_iterator<char>(logFile)),
-//                             std::istreambuf_iterator<char>());
-    
-//     EXPECT_NE(fileContent.find("Test log message"), std::string::npos);
-//     EXPECT_NE(fileContent.find("Test warning message"), std::string::npos);
-
-//     // Clean up
-//     logFile.close();
-//     std::cout.rdbuf(originalCout);  // Restore std::cout
-//     remove("test.log");
+// // 测试日志文件写入
+// TEST_F(TalkLogTest, LogFileWriting) {
+//     TALKO_LOG_INFO("Test log message");
+//     std::this_thread::sleep_for(std::chrono::milliseconds(100));
+//     std::ifstream file(logFile);
+//     std::string line;
+//     bool found = false;
+//     while (std::getline(file, line)) {
+//         if (line.find("Test log message") != std::string::npos) {
+//             found = true;
+//             break;
+//         }
+//     }
+//     file.close();
+//     EXPECT_TRUE(found);
 // }
 
-// // Test case for logging level filtering
-// TEST(TalkLogTest, LogLevelFiltering) {
-//     TalkLog& log = TalkLog::getInstance();
-//     log.setLogLevel(LogLevel::ERROR);
-
-//     std::ostringstream consoleOutput;
-//     std::streambuf* originalCout = std::cout.rdbuf(consoleOutput.rdbuf());
-
-//     // Should log only ERROR and CRITICAL messages
-//     LOG_INFO("Info message");
-//     LOG_WARN("Warning message");
-//     LOG_ERROR("Error message");
-
-//     // Check if the console output contains only ERROR message
-//     EXPECT_EQ(consoleOutput.str().find("Error message"), std::string::npos);
-
-//     std::cout.rdbuf(originalCout);  // Restore std::cout
-// }
-
-// int main(int argc, char **argv) {
-//     ::testing::InitGoogleTest(&argc, argv);
-//     return RUN_ALL_TESTS();
-// }
+// 测试无日志文件时的行为
+TEST_F(TalkLogTest, NoLogFileErrorHandling) {
+    TalkLog::getInstance().setLogFile("/forbidden_path/log.log");
+    TALKO_LOG_INFO("Should not crash");
+}

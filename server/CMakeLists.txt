@@ -19,7 +19,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
     message(STATUS "Release模式：启用优化")
     # Release模式下启用优化
-    set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+    set(CMAKE_CXX_FLAGS_RELEASE "-g -O2")
 else()
     message(STATUS "未知的编译类型: ${CMAKE_BUILD_TYPE}")
 endif()
@@ -43,8 +43,3 @@ endif()
 
 # 安装规则
 install(TARGETS TalkoServer DESTINATION bin)
-# install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/include/ DESTINATION include)
-# install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/config/ DESTINATION config)
-# install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/database/ DESTINATION database)
-# install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/log/ DESTINATION log)
-# install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/service/ DESTINATION service)

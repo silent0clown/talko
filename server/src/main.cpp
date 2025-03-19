@@ -1,7 +1,7 @@
 #include <iostream>
 #include <memory>
 #include "config/TalkConfig.h"
-#include "database/TalkDB.h"
+#include "MySQLConnectionPool.h"
 #include "log/TalkLog.h"
 #include "service/TalkServer.h"
 
@@ -24,15 +24,13 @@ public:
         // }
         // std::cout << "[ServerInitializer] 配置加载完成" << std::endl;
 
-        // // 2. 初始化日志
-        // log.init();
-        // std::cout << "[ServerInitializer] 日志系统初始化完成" << std::endl;
+        // 2. 初始化日志
+        TalkLog::getInstance().setLogFile("/home/ubuntu/project/talko/server/data/log/talklog.log");
+        TalkLog::getInstance().setLogLevel(LogLevel::INFO);
+        TALKO_LOG_INFO("[ServerInitializer] 日志系统初始化完成");
 
-        // // 3. 连接数据库
-        // if (!db.connect(config.getDBConnectionString())) {
-        //     std::cerr << "[ERROR] 数据库连接失败!" << std::endl;
-        //     exit(EXIT_FAILURE);
-        // }
+        // 3. 连接数据库
+        MySQLConnectionPool::GetInstance()->Init("127.0.0.1", "root", "talko_root", "talko_server", 6603, 5);
         // std::cout << "[ServerInitializer] 数据库连接成功" << std::endl;
 
         initialized = true;
@@ -56,6 +54,9 @@ private:
 
 int main() {
     std::cout << "[Main] 服务器启动中..." << std::endl;
+    
+    // // 初始化连接池
+    // MySQLConnectionPool::GetInstance()->Init("127.0.0.1", "root", "talko_root", "talko_server", 6033, 10);
 
     // 1. 初始化服务器
     ServerInitializer::getInstance().initialize();
