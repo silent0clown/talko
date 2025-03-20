@@ -71,7 +71,7 @@ public:
         std::unique_ptr<mysqlx::Session> conn = std::move(conn_pool_.front());
         conn_pool_.pop();
         // fixit: conn的连接健康检查
-        std::cout << "pool delete, cur size : " <<conn_pool_.size() <<  std::endl;
+        // std::cout << "pool delete, cur size : " <<conn_pool_.size() <<  std::endl;
         return conn;
     }
 
@@ -89,7 +89,7 @@ public:
     
         std::lock_guard<std::mutex> lock(mutex_);
         conn_pool_.push(std::move(conn));
-        std::cout << "pool add, cur size: " << conn_pool_.size() <<  std::endl;
+        // std::cout << "pool add, cur size: " << conn_pool_.size() <<  std::endl;
         cond_.notify_one();
     }
 
