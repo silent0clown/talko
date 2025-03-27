@@ -1,0 +1,12 @@
+prefix=/home/dev2/libuv/output
+exec_prefix=${prefix}
+libdir=/home/dev2/libuv/output/lib64
+includedir=/home/dev2/libuv/output/include
+
+Name: libuv
+Version: 1.40.0
+Description: multi-platform support library with a focus on asynchronous I/O.
+URL: http://libuv.org/
+
+Libs: -L${libdir} -luv -lpthread -ldl -lrt
+Cflags: -I${includedir}

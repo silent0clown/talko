@@ -1,9 +1,9 @@
 #include <iostream>
 #include <memory>
-#include "config/TalkConfig.h"
-#include "MySQLConnectionPool.h"
-#include "log/TalkLog.h"
-#include "service/TalkServer.h"
+#include "config/server_config.h"
+#include "db_mysqlconn_pool.h"
+#include "log/whisp_log.h"
+// #include "service/TalkServer.h"
 
 class ServerInitializer {
 public:
@@ -51,6 +51,28 @@ private:
     // TalkLog log;
     // TalkDB db;
 };
+
+
+/*
+在 main 函数中，需要完成以下操作：
+
+    初始化日志系统。
+
+    解析命令行参数。
+
+    初始化线程池。
+
+    初始化网络层。
+
+    初始化数据库连接池。
+
+    注册信号处理函数。
+
+    实现主循环。
+
+    清理资源。
+    
+*/
 
 int main() {
     std::cout << "[Main] 服务器启动中..." << std::endl;

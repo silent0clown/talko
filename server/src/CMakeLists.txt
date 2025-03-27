@@ -1,51 +1,44 @@
 cmake_minimum_required(VERSION 3.15)
-project(TalkoServerSrc)
+project(whisp_server_lib)
 
 # 添加主项目源码
 set(SRC_FILES
-    config/TalkConfig.cpp
-    database/TalkDB.cpp
-    database/TalkMessageDAO.cpp
-    database/TalkUserDAO.cpp
-    log/TalkLog.cpp
-    service/TalkConsumer.cpp
-    service/TalkMessage.cpp
-    service/TalkProducer.cpp
-    service/TalkServer.cpp
-    service/TalkUser.cpp
+    config/server_config.cpp
+    database/db.cpp
+    #database/TalkMessageDAO.cpp
+    database/db_user_info.cpp
+    log/whisp_log.cpp
+    #service/TalkConsumer.cpp
+    #service/TalkMessage.cpp
+    #service/TalkProducer.cpp
+    #service/TalkServer.cpp
+    #service/TalkUser.cpp
+    #library/db_mysqlconn_pool.cpp
 )
 
 # 生成主项目库
-add_library(TalkoServerLib STATIC ${SRC_FILES})
+add_library(whisp_server_lib STATIC ${SRC_FILES})
 
 # 包含头文件路径
-target_include_directories(TalkoServerLib PUBLIC 
+target_include_directories(whisp_server_lib PUBLIC 
     ${ROOT_PATH}/src
     ${ROOT_PATH}/src/config
     ${ROOT_PATH}/src/database
     ${ROOT_PATH}/src/log
     ${ROOT_PATH}/src/service
+    ${ROOT_PATH}/src/library
 )
 
-# 添三方库头文件路径
-include_directories(${ROOT_PATH}/third_party/openssl-dist/include)
-include_directories(${ROOT_PATH}/third_party/mysqlconn-dist/include)
-
-# 添加库
-add_library(crypto SHARED IMPORTED)
-add_library(ssl SHARED IMPORTED)
-add_library(mysqlcppconn8 SHARED IMPORTED)
-
-# 添加库路径
-set_target_properties(crypto PROPERTIES IMPORTED_LOCATION ${ROOT_PATH}/third_party/openssl-dist/lib/libcrypto.a)
-set_target_properties(ssl PROPERTIES IMPORTED_LOCATION ${ROOT_PATH}/third_party/openssl-dist/lib/libssl.a)
-set_target_properties(mysqlcppconn8 PROPERTIES IMPORTED_LOCATION ${ROOT_PATH}/third_party/mysqlconn-dist/lib64/libmysqlcppconn8.so)
-
 # 连接库文件
-target_link_libraries(TalkoServerLib crypto ssl mysqlcppconn8)
+# target_link_libraries(whisp_server_lib crypto ssl mysqlcppconn8)
+
+
+add_library(resolv SHARED IMPORTED)
+set_target_properties(resolv PROPERTIES IMPORTED_LOCATION /usr/lib/x86_64-linux-gnu/libresolv.so)
+target_link_libraries(whisp_server_lib mysqlcppconn8 ssl crypto dl z resolv)
 
 # 生成可执行文件
-add_executable(TalkoServer main.cpp)
+add_executable(whisp_server_proc main.cpp)
 
 # 链接 src 目录生成的库
-target_link_libraries(TalkoServer PRIVATE TalkoServerLib)
+target_link_libraries(whisp_server_proc PRIVATE whisp_server_lib)
