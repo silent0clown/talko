@@ -1,8 +1,11 @@
-#include <iostream>
-#include <memory>
 #include "config/parse_config.h"
 #include "db_mysqlconn_pool.h"
 #include "log/whisp_log.h"
+#include "util/daemon_run.h"
+#include <iostream>
+// #include <memory>
+// #include <stdlib>
+#include <csignal>
 // // #include "service/TalkServer.h"
 
 // class ServerInitializer {
@@ -81,7 +84,7 @@
 // std::mutex WhispDB::mutex_;
 
 // 参数解析
-void parse_arguments(int argc, char* argv)
+void parse_arguments(int argc, char* argv[])
 {
     int ch;
     bool bdaemon = false;
@@ -105,25 +108,55 @@ void parse_arguments(int argc, char* argv)
 int main(int argc, char* argv[])
 {
     std::cout << "[Main] 服务器启动中..." << std::endl;
-
+    char *log_file_path = nullptr;
 #ifndef WIND32
     signal(SIGCHLD, SIG_DFL);   // 子进程退出时，默认处理（避免产生僵尸进程）
     signal(SIGPIPE, SIG_IGN);   // 忽略 SIGPIPE 信号（通常在管道破裂、socket 关闭时触发）
     signal(SIGINT, prog_exit);  // SIGINT (Ctrl+C) 和 SIGTERM (终止信号) 时调用 prog_exit 进行清理操作
     signal(SIGTERM, prog_exit);
 #endif
-    
+    // 参数解析
     parse_arguments(argc, argv);
 
+    // 加载配置
     ConfigParser parser;
     struct WhispConfig whisp_config;
-    if (ConfigParser::whisp_config("config/server_config.yml", whisp_config)) {
-        std::cout << "Client Listen IP: " << config.client_config.client_listen_ip << std::endl;
-        std::cout << "Monitor Token: " << config.monitor_config.monitor_token << std::endl;
-        std::cout << "MySQL Server: " << config.mysql_config.mysql_server_addr << std::endl;
+    if (parser.whisp_load_config("/home/dev1/talko/server/src/config/server_config.yml", whisp_config)) {
+        parser.whisp_print_config(whisp_config);
     } else {
         std::cerr << "Failed to load config.yml!" << std::endl;
     }
+
+    // 初始化日志
+    if (nullptr == whisp_config.log_file_dir) {
+        log_file_path = "/var/log/whisplog";
+    } else {
+        log_file_path = whisp_config.log_file_dir;
+    }
+    std::cout << "log file path is : " << log_file_path << std::endl;
+
+     DIR* dp = opendir(log_file_path);
+     if (dp == NULL)
+     {
+         if (mkdir(log_file_path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) != 0)
+         {
+            std::cerr << "create base dir error, "<< log_file_path << ", errno: "<< errno << strerror(errno);
+            return 1;
+         }
+     }
+     closedir(dp);
+ 
+     logFileFullPath = logfilepath;
+ #endif
+ 
+     const char* logfilename = config.getConfigName("logfilename");
+     logFileFullPath += logfilename;
+ 
+ #ifdef _DEBUG
+     CAsyncLog::init();
+ #else
+     CAsyncLog::init(logFileFullPath.c_str());
+ #endif
 
     // WhispDB* db = WhispDB::get_instance();
     // db->init("localhost", "user", "password", "dbname");

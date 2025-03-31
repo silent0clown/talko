@@ -1,29 +1,29 @@
 # Client listener
 client:
-  listenip: "0.0.0.0"
-  listenport: 20000
+  listen_ip: "0.0.0.0"
+  listen_port: 20000
 
 # Monitor listener
 monitor:
-  listenip: "0.0.0.0"
-  listenport: 8888
+  listen_ip: "0.0.0.0"
+  listen_port: 8888
   token: "123"
 
 # HTTP listener
 http:
-  listenip: "0.0.0.0"
-  listenport: 12345
+  listen_ip: "0.0.0.0"
+  listen_port: 12345
 
 # Log configuration
 log:
-  filedir: "logs/"
-  filename: "chatserver"
-  binarypackage: false  # 0 转换为 false，1 为 true
+  file_dir: "/home/dev1/talko/server/src/data/logs/"
+  file_ame: "whisp_log"
+  binary_package: false  # 0 转换为 false，1 为 true
 
 # MySQL configuration
 mysql:
-  serverip: "101.37.25.166"
-  serverport: "3306"
+  server_ip: "101.37.25.166"
+  server_port: 3306
   user: "root"
   password: "123456"
   database: "flamingo"

@@ -46,14 +46,7 @@ class ConfigParser {
 public:
     // 入参1：配置文件路径， // 入参2：待加载配置项指针
     bool whisp_load_config(const std::string& file_name, struct WhispConfig& whisp_config);
-    // bool whisp_destroy_config(struct WhispConfig** whisp_config);
-// private:
-
-    // ClientConfig clientConfig;
-    // MonitorConfig monitorConfig;
-    // HttpConfig httpConfig;
-    // LogConfig logConfig;
-    // MysqlConfig mysqlConfig;
+    void whisp_print_config(const struct WhispConfig& whisp_config);
 };
 
 

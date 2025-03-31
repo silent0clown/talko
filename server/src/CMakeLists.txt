@@ -3,6 +3,7 @@ project(whisp_server_lib)
 
 # 添加主项目源码
 set(SRC_FILES
+    util/daemon_run.cpp
     config/parse_config.cpp
     #database/whisp_db.cpp
     #database/TalkMessageDAO.cpp
@@ -22,6 +23,7 @@ add_library(whisp_server_lib STATIC ${SRC_FILES})
 # 包含头文件路径
 target_include_directories(whisp_server_lib PUBLIC 
     ${ROOT_PATH}/src
+    ${ROOT_PATH}/src/util
     ${ROOT_PATH}/src/config
     ${ROOT_PATH}/src/database
     ${ROOT_PATH}/src/log
