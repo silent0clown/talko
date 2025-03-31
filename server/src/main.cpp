@@ -1,56 +1,56 @@
 #include <iostream>
 #include <memory>
-#include "config/server_config.h"
+#include "config/parse_config.h"
 #include "db_mysqlconn_pool.h"
 #include "log/whisp_log.h"
-// #include "service/TalkServer.h"
+// // #include "service/TalkServer.h"
 
-class ServerInitializer {
-public:
-    // 获取单例实例
-    static ServerInitializer& getInstance() {
-        static ServerInitializer instance;
-        return instance;
-    }
+// class ServerInitializer {
+// public:
+//     // 获取单例实例
+//     static ServerInitializer& getInstance() {
+//         static ServerInitializer instance;
+//         return instance;
+//     }
 
-    // 初始化服务器
-    void initialize() {
-        std::cout << "[ServerInitializer] 开始初始化服务器..." << std::endl;
+//     // 初始化服务器
+//     void initialize() {
+//         std::cout << "[ServerInitializer] 开始初始化服务器..." << std::endl;
 
-        // // 1. 加载配置文件
-        // if (!config.loadConfig("config/config.yaml")) {
-        //     std::cerr << "[ERROR] 加载配置失败!" << std::endl;
-        //     exit(EXIT_FAILURE);
-        // }
-        // std::cout << "[ServerInitializer] 配置加载完成" << std::endl;
+//         // // 1. 加载配置文件
+//         // if (!config.loadConfig("config/config.yaml")) {
+//         //     std::cerr << "[ERROR] 加载配置失败!" << std::endl;
+//         //     exit(EXIT_FAILURE);
+//         // }
+//         // std::cout << "[ServerInitializer] 配置加载完成" << std::endl;
 
-        // 2. 初始化日志
-        TalkLog::getInstance().setLogFile("/home/ubuntu/project/talko/server/data/log/talklog.log");
-        TalkLog::getInstance().setLogLevel(LogLevel::INFO);
-        TALKO_LOG_INFO("[ServerInitializer] 日志系统初始化完成");
+//         // 2. 初始化日志
+//         TalkLog::getInstance().setLogFile("/home/ubuntu/project/talko/server/data/log/talklog.log");
+//         TalkLog::getInstance().setLogLevel(LogLevel::INFO);
+//         TALKO_LOG_INFO("[ServerInitializer] 日志系统初始化完成");
 
-        // 3. 连接数据库
-        MySQLConnectionPool::GetInstance()->Init("127.0.0.1", "root", "talko_root", "talko_server", 6603, 5);
-        // std::cout << "[ServerInitializer] 数据库连接成功" << std::endl;
+//         // 3. 连接数据库
+//         MySQLConnectionPool::GetInstance()->Init("127.0.0.1", "root", "talko_root", "talko_server", 6603, 5);
+//         // std::cout << "[ServerInitializer] 数据库连接成功" << std::endl;
 
-        initialized = true;
-        std::cout << "[ServerInitializer] 服务器初始化完成" << std::endl;
-    }
+//         initialized = true;
+//         std::cout << "[ServerInitializer] 服务器初始化完成" << std::endl;
+//     }
 
-private:
-    // 私有构造函数，防止外部实例化
-    ServerInitializer() : initialized(false) {}
+// private:
+//     // 私有构造函数，防止外部实例化
+//     ServerInitializer() : initialized(false) {}
 
-    // 禁止拷贝构造和赋值
-    ServerInitializer(const ServerInitializer&) = delete;
-    ServerInitializer& operator=(const ServerInitializer&) = delete;
+//     // 禁止拷贝构造和赋值
+//     ServerInitializer(const ServerInitializer&) = delete;
+//     ServerInitializer& operator=(const ServerInitializer&) = delete;
 
-    // 成员变量
-    bool initialized;
-    // TalkConfig config;
-    // TalkLog log;
-    // TalkDB db;
-};
+//     // 成员变量
+//     bool initialized;
+//     // TalkConfig config;
+//     // TalkLog log;
+//     // TalkDB db;
+// };
 
 
 /*
@@ -74,14 +74,62 @@ private:
     
 */
 
-int main() {
-    std::cout << "[Main] 服务器启动中..." << std::endl;
-    
-    // // 初始化连接池
-    // MySQLConnectionPool::GetInstance()->Init("127.0.0.1", "root", "talko_root", "talko_server", 6033, 10);
 
-    // 1. 初始化服务器
-    ServerInitializer::getInstance().initialize();
+
+// 静态成员初始化
+// WhispDB* WhispDB::instance_ = nullptr;
+// std::mutex WhispDB::mutex_;
+
+// 参数解析
+void parse_arguments(int argc, char* argv)
+{
+    int ch;
+    bool bdaemon = false;
+    while ((ch = getopt(argc, argv, "d")) != -1)
+    {
+        switch (ch)
+        {
+        case 'd':
+            bdaemon = true;
+            break;
+        }
+    }
+
+    if (bdaemon) {
+        std::cout << "server run in daemon mode." << std::endl;
+        daemon_run();
+
+    }
+}
+
+int main(int argc, char* argv[])
+{
+    std::cout << "[Main] 服务器启动中..." << std::endl;
+
+#ifndef WIND32
+    signal(SIGCHLD, SIG_DFL);   // 子进程退出时，默认处理（避免产生僵尸进程）
+    signal(SIGPIPE, SIG_IGN);   // 忽略 SIGPIPE 信号（通常在管道破裂、socket 关闭时触发）
+    signal(SIGINT, prog_exit);  // SIGINT (Ctrl+C) 和 SIGTERM (终止信号) 时调用 prog_exit 进行清理操作
+    signal(SIGTERM, prog_exit);
+#endif
+    
+    parse_arguments(argc, argv);
+
+    ConfigParser parser;
+    struct WhispConfig whisp_config;
+    if (ConfigParser::whisp_config("config/server_config.yml", whisp_config)) {
+        std::cout << "Client Listen IP: " << config.client_config.client_listen_ip << std::endl;
+        std::cout << "Monitor Token: " << config.monitor_config.monitor_token << std::endl;
+        std::cout << "MySQL Server: " << config.mysql_config.mysql_server_addr << std::endl;
+    } else {
+        std::cerr << "Failed to load config.yml!" << std::endl;
+    }
+
+    // WhispDB* db = WhispDB::get_instance();
+    // db->init("localhost", "user", "password", "dbname");
+
+    // // 1. 初始化服务器
+    // ServerInitializer::getInstance().initialize();
 
     // 2. 启动聊天服务器
     // TalkServer server;

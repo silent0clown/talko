@@ -5,7 +5,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-namespace whisp_net_server {
+namespace net_server {
 
 // 构造函数，初始化服务器
 Server::Server(int port) 
@@ -143,4 +143,8 @@ void Server::process_message(int client_fd) {
     }
 }
 
+
+
 }  // namespace whisp_net_server
+
+

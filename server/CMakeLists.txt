@@ -61,6 +61,7 @@ include_directories(${THIRD_PARTY_PATH}/mysqlconn/include)
 include_directories(${THIRD_PARTY_PATH}/libuv/include)
 include_directories(${THIRD_PARTY_PATH}/uwebsockets/include)
 include_directories(${THIRD_PARTY_PATH}/uwebsockets/uSockets/include)
+include_directories(${THIRD_PARTY_PATH}/yaml-cpp/include)
 
 if (0)
 # 添加库
@@ -68,6 +69,7 @@ add_library(crypto STATIC IMPORTED)
 add_library(ssl STATIC IMPORTED)
 add_library(mysqlcppconn8 STATIC IMPORTED)
 add_library(libuv STATIC IMPORTED)
+
 
 # 添加库路径
 set_target_properties(crypto PROPERTIES IMPORTED_LOCATION ${THIRD_PARTY_PATH}/openssl/lib/libcrypto.a)
@@ -81,6 +83,7 @@ add_library(ssl SHARED IMPORTED)
 add_library(mysqlcppconn8 SHARED IMPORTED)
 add_library(libuv SHARED IMPORTED)
 add_library(usocket STATIC IMPORTED)
+add_library(yaml-cpp STATIC IMPORTED)
 
 
 # 添加库路径
@@ -88,6 +91,7 @@ set_target_properties(crypto PROPERTIES IMPORTED_LOCATION ${THIRD_PARTY_PATH}/op
 set_target_properties(ssl PROPERTIES IMPORTED_LOCATION ${THIRD_PARTY_PATH}/openssl/lib/libssl.so)
 set_target_properties(mysqlcppconn8 PROPERTIES IMPORTED_LOCATION ${THIRD_PARTY_PATH}/mysqlconn/lib/libmysqlcppconn8.so.2.8.0.33)
 set_target_properties(usocket PROPERTIES IMPORTED_LOCATION {THIRD_PARTY_PATH}/uwebsockets/uSockets/libuSockets.a)
+set_target_properties(yaml-cpp PROPERTIES IMPORTED_LOCATION {THIRD_PARTY_PATH}/yaml-cpp/lib/libyaml-cpp.a)
 # 添加主项目子文件夹
 add_subdirectory(src)
 

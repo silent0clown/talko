@@ -1,0 +1,29 @@
+# Client listener
+client:
+  listenip: "0.0.0.0"
+  listenport: 20000
+
+# Monitor listener
+monitor:
+  listenip: "0.0.0.0"
+  listenport: 8888
+  token: "123"
+
+# HTTP listener
+http:
+  listenip: "0.0.0.0"
+  listenport: 12345
+
+# Log configuration
+log:
+  filedir: "logs/"
+  filename: "chatserver"
+  binarypackage: false  # 0 转换为 false，1 为 true
+
+# MySQL configuration
+mysql:
+  serverip: "101.37.25.166"
+  serverport: "3306"
+  user: "root"
+  password: "123456"
+  database: "flamingo"

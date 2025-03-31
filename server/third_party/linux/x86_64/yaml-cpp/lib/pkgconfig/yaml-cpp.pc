@@ -1,0 +1,11 @@
+prefix=/home/dev1/yaml-cpp/output/shared
+exec_prefix=${prefix}
+includedir=/home/dev1/yaml-cpp/output/shared/include
+libdir=/home/dev1/yaml-cpp/output/shared/lib
+
+Name: Yaml-cpp
+Description: A YAML parser and emitter for C++
+Version: 0.8.0
+Requires:
+Libs: -L${libdir} -lyaml-cpp
+Cflags: -I${includedir}

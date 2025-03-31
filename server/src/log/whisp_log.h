@@ -41,19 +41,6 @@ public:
     }
 
     template <typename... Args>
-    // void log(LogLevel level, Args&&... args) {   // ansyc
-    //     if (level < currentLevel_) return;
-
-    //     std::ostringstream oss;
-    //     (oss << ... << std::forward<Args>(args));
-    //     std::string logMessage = "[" + getTimestamp() + "] [" + logLevelToString(level) + "] " + oss.str();
-        
-    //     {
-    //         std::lock_guard<std::mutex> lock(queueMutex_);
-    //         logQueue_.push(logMessage);
-    //     }
-    //     condVar_.notify_one();
-    // }
     void log(LogLevel level, const char* file, int line, Args&&... args) {
         if (level < currentLevel_) return;
     

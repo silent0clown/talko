@@ -10,12 +10,6 @@
 
 class MySQLConnectionPool {
 public:
-    // 获取单例对象
-    static MySQLConnectionPool* GetInstance() {
-        static MySQLConnectionPool instance;
-        return &instance;
-    }
-
     // 初始化连接池
     void Init(const std::string& host, const std::string& user, const std::string& passwd,
               const std::string& dbname, int port, int pool_size) {
@@ -111,7 +105,7 @@ public:
     }
 
 private:
-    MySQLConnectionPool() = default;
+    MySQLConnectionPool() = default;        // 告诉编译器生成一个默认构造函数，而不需要手动编写构造函数的实现
     MySQLConnectionPool(const MySQLConnectionPool&) = delete;
     MySQLConnectionPool& operator=(const MySQLConnectionPool&) = delete;
 
