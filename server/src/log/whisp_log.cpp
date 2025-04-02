@@ -35,6 +35,8 @@ bool WhispLog::log_init(const char* log_file_name = nullptr, bool truncate_flag 
     exit_flag_ = false;
     running_flag_ = false;
 
+    write_thread_pool_.reset(new std::thread(write_thread_proc));
+
     return true;
 }
 
