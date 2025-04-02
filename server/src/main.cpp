@@ -6,7 +6,14 @@
 // #include <memory>
 // #include <stdlib>
 #include <csignal>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <dirent.h>    // 文件夹操作句柄
 // // #include "service/TalkServer.h"
+
+
+#define MAX_LOG_FILE_PATH  (256)
 
 // class ServerInitializer {
 // public:
@@ -108,7 +115,7 @@ void parse_arguments(int argc, char* argv[])
 int main(int argc, char* argv[])
 {
     std::cout << "[Main] 服务器启动中..." << std::endl;
-    char *log_file_path = nullptr;
+    char log_file[MAX_LOG_FILE_PATH + 1] = {0};
 #ifndef WIND32
     signal(SIGCHLD, SIG_DFL);   // 子进程退出时，默认处理（避免产生僵尸进程）
     signal(SIGPIPE, SIG_IGN);   // 忽略 SIGPIPE 信号（通常在管道破裂、socket 关闭时触发）
@@ -127,36 +134,41 @@ int main(int argc, char* argv[])
         std::cerr << "Failed to load config.yml!" << std::endl;
     }
 
-    // 初始化日志
-    if (nullptr == whisp_config.log_file_dir) {
-        log_file_path = "/var/log/whisplog";
+    // 初始化日志， 后续封装实现
+    if (whisp_config.log_config.log_file_dir.size() == 0) {
+        const char* default_path = "/var/log/whisplog";
+        memcpy(log_file, default_path, strlen(default_path));
     } else {
-        log_file_path = whisp_config.log_file_dir;
+        memcpy(log_file, whisp_config.log_config.log_file_dir.c_str(), strlen(whisp_config.log_config.log_file_dir.c_str()));
     }
-    std::cout << "log file path is : " << log_file_path << std::endl;
+    std::cout << "log file path is : " << log_file << std::endl;
 
-     DIR* dp = opendir(log_file_path);
-     if (dp == NULL)
-     {
-         if (mkdir(log_file_path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) != 0)
-         {
-            std::cerr << "create base dir error, "<< log_file_path << ", errno: "<< errno << strerror(errno);
-            return 1;
-         }
-     }
-     closedir(dp);
+    DIR* dp = opendir(log_file);
+    if (dp == NULL)
+    {
+        if (mkdir(log_file, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) != 0)
+        {
+        std::cerr << "create base dir error, "<< log_file << ", errno: "<< errno << strerror(errno);
+        return 1;
+        }
+    }
+    closedir(dp);
  
-     logFileFullPath = logfilepath;
- #endif
+//      log_file = log_file_path;
+
  
-     const char* logfilename = config.getConfigName("logfilename");
-     logFileFullPath += logfilename;
+//     log_file_name = whisp_config.log_config.log_file_name;
+//     if (nullptr = log_file_name) {
+//         log_file_name = "whisplog";
+//     }
+//     log_file += log_file_name;
+//     std::cout << "log file is : " << log_file << std:endl; 
  
- #ifdef _DEBUG
-     CAsyncLog::init();
- #else
-     CAsyncLog::init(logFileFullPath.c_str());
- #endif
+//  #ifdef _DEBUG
+//      CAsyncLog::init();
+//  #else
+//      CAsyncLog::init(logFileFullPath.c_str());
+//  #endif
 
     // WhispDB* db = WhispDB::get_instance();
     // db->init("localhost", "user", "password", "dbname");
