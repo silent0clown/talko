@@ -8,6 +8,8 @@ set(SRC_FILES
     #database/whisp_db.cpp
     #database/TalkMessageDAO.cpp
     database/db_user_info.cpp
+    database/whisp_sqlconn_factory.cpp
+    database/whisp_mysqlconn_pool.cpp
     log/whisp_log.cpp
     #service/TalkConsumer.cpp
     #service/TalkMessage.cpp

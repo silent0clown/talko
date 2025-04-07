@@ -8,12 +8,14 @@
 #include <stdarg.h>
 #include <sstream>
 #include <string.h>
-#include <sys/timeb.h>
+#include <sys/time.h>
+#include <ctime>
+#include <cstdio>
 
 #define MAX_LOG_LINE_LENGTH     (256)
 #define DEFAULT_ROLL_SIZE       (10*1024*1024)
 
-bool WhispLog::log_init(const char* log_file_name = nullptr, bool truncate_flag = false, int64_t roll_size = 10 * 1024 * 1024)
+bool WhispLog::log_init(const char* log_file_name, bool truncate_flag, int64_t roll_size)
 {
     truncate_flag_ = truncate_flag;
     roll_size_ = roll_size;
@@ -35,7 +37,10 @@ bool WhispLog::log_init(const char* log_file_name = nullptr, bool truncate_flag 
     exit_flag_ = false;
     running_flag_ = false;
 
-    write_thread_pool_.reset(new std::thread(write_thread_proc));
+    // write_thread_pool_.reset(new std::thread(write_thread_proc));
+    write_thread_pool_ = std::make_unique<std::thread>([this]() {
+        this->write_thread_proc();
+    });
 
     return true;
 }
@@ -71,41 +76,114 @@ bool WhispLog::log_isrunning()
     return running_flag_;
 }
 
-bool WhispLog::log_output(LOG_LEVEL levelv, const char* fmt, ...)
-{
+// bool WhispLog::log_output(LOG_LEVEL levelv, const char* fmt, ...)
+// {
+//     if (levelv < cur_level_ && levelv != LOG_LEVEL_CRITICAL)
+//         return false;
+
+//     std::string output_line;
+//     set_line_perfix(levelv, output_line);
+
+//     // log context
+//     std::string log_msg;
+//     // 计算不定参数长度，以便分配空间
+//     va_list ap;     // #include <stdarg.h>
+//     va_start(ap, fmt);
+//     int msg_len = vsnprintf(nullptr, 0, fmt, ap);
+//     va_end(ap);
+
+//     // string 内容正确但len错误
+//     std::string formal_msg;
+//     formal_msg.append(log_msg.c_str(), msg_len);
+
+//     if (truncate_flag_)
+//         formal_msg = formal_msg.substr(0, MAX_LOG_LINE_LENGTH);
+    
+//     output_line += formal_msg;
+
+//     if (!log_name_.empty()){
+//         output_line += '\n';
+//     } 
+    
+//     if (levelv != LOG_LEVEL_FATAL) {
+//         std::lock_guard<std::mutex> lock_guard(write_mutex_);
+//         write_wating_lists_.push_back(output_line);
+//         write_cond_.notify_one();
+//     } else {
+//         //为了让FATAL级别的日志能立即crash程序，采取同步写日志的方法
+//         std::cout << output_line << std::endl;
+
+//         if (!log_name_.empty()) {
+//             if (nullptr == log_file_) {
+//                 // 没有文件句柄，新建文件
+//                 char timef[64];
+//                 time_t cur_time = time(NULL);
+//                 tm time_info;
+
+//                 localtime_r(&cur_time, &time_info);
+//                 strftime(timef, sizeof(timef), "%Y%m%d%H%M%S", &time_info);
+
+//                 std::string new_log_file(log_name_);
+//                 new_log_file += ".";
+//                 new_log_file += timef;
+//                 new_log_file += ".";
+//                 new_log_file += log_id_;
+//                 new_log_file += ".log";
+//                 if (!create_file(new_log_file.c_str())) {
+//                     std:: cout << "creat log file :" << new_log_file << " fail" << std::endl;
+//                     return false;
+//                 }
+//             }
+//             write2file(output_line);
+//         }
+//         // crash();
+//     }
+//     return true;
+// }
+
+bool WhispLog::log_output(LOG_LEVEL levelv, const char* fmt, ...) {
     if (levelv < cur_level_ && levelv != LOG_LEVEL_CRITICAL)
         return false;
 
     std::string output_line;
     set_line_perfix(levelv, output_line);
 
-    // log context
-    std::string log_msg;
     // 计算不定参数长度，以便分配空间
-    va_list ap;     // #include <stdarg.h>
+    va_list ap;
     va_start(ap, fmt);
     int msg_len = vsnprintf(nullptr, 0, fmt, ap);
     va_end(ap);
 
-    // string 内容正确但len错误
-    std::string formal_msg;
-    formal_msg.append(log_msg.c_str(), msg_len);
+    if (msg_len < 0) {
+        // 处理错误情况，vsnprintf 可能返回负数，表示错误
+        return false;
+    }
+
+    // 为格式化后的消息分配足够的空间
+    std::string log_msg(msg_len + 1, '\0');  // +1 是为了包含 '\0'
+
+    // 使用 vsnprintf 格式化日志消息
+    va_list aq;
+    va_start(aq, fmt);
+    vsnprintf(&log_msg[0], log_msg.size(), fmt, aq);  // 使用 log_msg 的数据
+    va_end(aq);
+
+    // 构建日志输出
+    output_line += log_msg;
 
     if (truncate_flag_)
-        formal_msg = formal_msg.substr(0, MAX_LOG_LINE_LENGTH);
-    
-    output_line += formal_msg;
+        output_line = output_line.substr(0, MAX_LOG_LINE_LENGTH); // 截取最大长度
 
-    if (!log_name_.empty()){
+    if (!log_name_.empty()) {
         output_line += '\n';
-    } 
-    
+    }
+
     if (levelv != LOG_LEVEL_FATAL) {
         std::lock_guard<std::mutex> lock_guard(write_mutex_);
         write_wating_lists_.push_back(output_line);
         write_cond_.notify_one();
     } else {
-        //为了让FATAL级别的日志能立即crash程序，采取同步写日志的方法
+        // 为了让 FATAL 级别的日志能够立即崩溃程序，采取同步写日志
         std::cout << output_line << std::endl;
 
         if (!log_name_.empty()) {
@@ -125,20 +203,19 @@ bool WhispLog::log_output(LOG_LEVEL levelv, const char* fmt, ...)
                 new_log_file += log_id_;
                 new_log_file += ".log";
                 if (!create_file(new_log_file.c_str())) {
-                    std:: cout << "creat log file :" << new_log_file << " fail" << std::endl;
+                    std::cout << "create log file :" << new_log_file << " fail" << std::endl;
                     return false;
                 }
             }
             write2file(output_line);
         }
-        crash();
+        // crash();
     }
     return true;
 }
 
-bool WhispLog::log_output(LOG_LEVEL levelv, const char* file_name, int line_num, const char* fmt, ...)
-{
-    if (levelv < cur_level_ || levelv != LOG_LEVEL_CRITICAL)
+bool WhispLog::log_output(LOG_LEVEL levelv, const char* file_name, int line_num, const char* fmt, ...) {
+    if (levelv < cur_level_ && levelv != LOG_LEVEL_CRITICAL)
         return false;
 
     std::string out_line;
@@ -153,25 +230,27 @@ bool WhispLog::log_output(LOG_LEVEL levelv, const char* file_name, int line_num,
     std::string log_msg;
     va_list ap;
     va_start(ap, fmt);
+    
+    // 计算最终日志的长度
     int msg_len = vsnprintf(nullptr, 0, fmt, ap);
     va_end(ap);
 
-    // + \0
-    if ((int)log_msg.capacity() < msg_len + 1) {
-        log_msg.resize(msg_len + 1);
+    if (msg_len < 0) {
+        // 处理错误情况，vsnprintf 可能会返回负数，表示错误
+        return false;
     }
+
+    log_msg.resize(msg_len + 1); // +1 是为了包含 '\0'
     va_list aq;
     va_start(aq, fmt);
-    vsnprintf((char*)log_msg.data(), log_msg.capacity(), fmt, aq);
+    vsnprintf(&log_msg[0], log_msg.capacity(), fmt, aq); // 使用 log_msg 的数据
     va_end(aq);
 
-    std::string formal_msg;
-    formal_msg.append(log_msg.c_str(), msg_len); // 是否少1？
-
+    // 将格式化后的消息追加到日志
     if (truncate_flag_)
-        formal_msg = formal_msg.substr(0, MAX_LOG_LINE_LENGTH); // 是否需要'\0'
+        log_msg = log_msg.substr(0, MAX_LOG_LINE_LENGTH); // 截取最大长度
 
-    out_line += formal_msg;
+    out_line += log_msg;
 
     if (! log_name_.empty()) {
         out_line += '\n';
@@ -182,7 +261,7 @@ bool WhispLog::log_output(LOG_LEVEL levelv, const char* file_name, int line_num,
         write_wating_lists_.push_back(out_line);
         write_cond_.notify_one();
     } else {
-        //为了让FATAL级别的日志能立即crash程序，采取同步写日志的方法
+        // 为了让 FATAL 级别的日志能够立即崩溃程序，采取同步写日志
         std::cout << out_line << std::endl;
 
         if (!log_name_.empty()) {
@@ -202,15 +281,93 @@ bool WhispLog::log_output(LOG_LEVEL levelv, const char* file_name, int line_num,
                 new_log_file += log_id_;
                 new_log_file += ".log";
                 if (!create_file(new_log_file.c_str())) {
-                    std:: cout << "creat log file :" << new_log_file << " fail" << std::endl;
+                    std:: cout << "create log file :" << new_log_file << " fail" << std::endl;
                     return false;
                 }
             }
             write2file(out_line);
         }
-        crash();
+        // crash();
     }
+    return true;
 }
+
+// bool WhispLog::log_output(LOG_LEVEL levelv, const char* file_name, int line_num, const char* fmt, ...)
+// {
+//     if (levelv < cur_level_ && levelv != LOG_LEVEL_CRITICAL)
+//         return false;
+
+//     std::string out_line;
+//     set_line_perfix(levelv, out_line);
+
+//     // 函数签名
+//     char file_info[512] = {0};
+//     snprintf(file_info, sizeof(file_info), "[%s:%d]", file_name, line_num);
+//     out_line += file_info;
+
+//     // log msg
+//     std::string log_msg;
+//     va_list ap;
+//     va_start(ap, fmt);
+//     int msg_len = vsnprintf(nullptr, 0, fmt, ap);
+//     va_end(ap);
+
+//     // + \0
+//     if ((int)log_msg.capacity() < msg_len + 1) {
+//         log_msg.resize(msg_len + 1);
+//     }
+//     va_list aq;
+//     va_start(aq, fmt);
+//     vsnprintf((char*)log_msg.data(), log_msg.capacity(), fmt, aq);
+//     va_end(aq);
+
+//     std::string formal_msg;
+//     formal_msg.append(log_msg.c_str(), msg_len); // 是否少1？
+
+//     if (truncate_flag_)
+//         formal_msg = formal_msg.substr(0, MAX_LOG_LINE_LENGTH); // 是否需要'\0'
+
+//     out_line += formal_msg;
+
+//     if (! log_name_.empty()) {
+//         out_line += '\n';
+//     }
+
+//     if (levelv != LOG_LEVEL_FATAL) {
+//         std::lock_guard<std::mutex> lock_guard(write_mutex_);
+//         write_wating_lists_.push_back(out_line);
+//         write_cond_.notify_one();
+//     } else {
+//         //为了让FATAL级别的日志能立即crash程序，采取同步写日志的方法
+//         std::cout << out_line << std::endl;
+
+//         if (!log_name_.empty()) {
+//             if (nullptr == log_file_) {
+//                 // 没有文件句柄，新建文件
+//                 char timef[64];
+//                 time_t cur_time = time(NULL);
+//                 tm time_info;
+
+//                 localtime_r(&cur_time, &time_info);
+//                 strftime(timef, sizeof(timef), "%Y%m%d%H%M%S", &time_info);
+
+//                 std::string new_log_file(log_name_);
+//                 new_log_file += ".";
+//                 new_log_file += timef;
+//                 new_log_file += ".";
+//                 new_log_file += log_id_;
+//                 new_log_file += ".log";
+//                 if (!create_file(new_log_file.c_str())) {
+//                     std:: cout << "creat log file :" << new_log_file << " fail" << std::endl;
+//                     return false;
+//                 }
+//             }
+//             write2file(out_line);
+//         }
+//         // crash();
+//     }
+//     return true;
+// }
 
 bool WhispLog::log_output_binary(unsigned char* buffer, size_t size)
 {
@@ -246,7 +403,7 @@ bool WhispLog::log_output_binary(unsigned char* buffer, size_t size)
 
 const char *WhispLog::ull2str(int n)
 {
-    char tmpbuf[64 + 1];    // static ?
+    static char tmpbuf[64 + 1];    // 这是单线程方式
     memset(tmpbuf, 0, sizeof(tmpbuf));
     sprintf(tmpbuf, "%06u", n);
     return tmpbuf;
@@ -323,14 +480,17 @@ void WhispLog::set_line_perfix(LOG_LEVEL levelv, std::string& prefix_str)
 
 void WhispLog::get_time(char* ts, int ts_len)
 {
-    struct timeb tp;
-    ftime(&tp);
+    struct timeval tv;
+    gettimeofday(&tv, nullptr);  // 获取当前时间（秒 & 微秒）
 
-    time_t now = tp.time;
-    tm time;
-    localtime_r(&now, &time);
+    struct tm time;
+    localtime_r(&tv.tv_sec, &time);  // 转换为本地时间
 
-    snprintf(ts, ts_len, "[%04d-%02d-%02d %02d:%02d:%02d:%03d]", time.tm_year + 1900, time.tm_mon + 1, time.tm_mday, time.tm_hour, time.tm_min, time.tm_sec, tp.millitm);
+    // 格式化输出时间（精确到毫秒）
+    snprintf(ts, ts_len, "[%04d-%02d-%02d %02d:%02d:%02d:%03ld]",
+             time.tm_year + 1900, time.tm_mon + 1, time.tm_mday,
+             time.tm_hour, time.tm_min, time.tm_sec,
+             tv.tv_usec / 1000);  // 微秒(us) 转换为 毫秒(ms)
 }
 
 bool WhispLog::create_file(const char *log_file_name)

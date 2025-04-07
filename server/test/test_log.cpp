@@ -21,9 +21,9 @@ protected:
 // 测试日志级别过滤
 TEST_F(TalkLogTest, LogLevelFiltering) {
     TalkLog::getInstance().setLogLevel(LogLevel::INFO);
-    TALKO_LOG_DEBUG("This should not appear in log");
-    TALKO_LOG_INFO("This should appear in log");
-    TALKO_LOG_ERROR("This should also appear in log");
+    WHISP_LOG_DEBUG("This should not appear in log");
+    WHISP_LOG_INFO("This should appear in log");
+    WHISP_LOG_ERROR("This should also appear in log");
 
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     std::ifstream file(logFile);
@@ -51,7 +51,7 @@ TEST_F(TalkLogTest, LogLevelFiltering) {
 //     for (int i = 0; i < THREAD_COUNT; ++i) {
 //         threads.emplace_back([]() {
 //             for (int j = 0; j < LOGS_PER_THREAD; ++j) {
-//                 TALKO_LOG_INFO("Thread log entry");
+//                 WHISP_LOG_INFO("Thread log entry");
 //             }
 //         });
 //     }
@@ -72,7 +72,7 @@ TEST_F(TalkLogTest, LogLevelFiltering) {
 
 // // 测试日志文件写入
 // TEST_F(TalkLogTest, LogFileWriting) {
-//     TALKO_LOG_INFO("Test log message");
+//     WHISP_LOG_INFO("Test log message");
 //     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 //     std::ifstream file(logFile);
 //     std::string line;
@@ -90,5 +90,5 @@ TEST_F(TalkLogTest, LogLevelFiltering) {
 // 测试无日志文件时的行为
 TEST_F(TalkLogTest, NoLogFileErrorHandling) {
     TalkLog::getInstance().setLogFile("/forbidden_path/log.log");
-    TALKO_LOG_INFO("Should not crash");
+    WHISP_LOG_INFO("Should not crash");
 }

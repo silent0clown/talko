@@ -16,14 +16,14 @@ http:
 
 # Log configuration
 log:
-  file_dir: "/home/dev1/talko/server/src/data/logs/"
-  file_ame: "whisp_log"
+  file_dir: "/home/dev1/talko/server/data/logs/"
+  file_name: "whisp_log"
   binary_package: false  # 0 转换为 false，1 为 true
 
 # MySQL configuration
 mysql:
-  server_ip: "101.37.25.166"
-  server_port: 3306
+  server_ip: "127.0.0.1"
+  server_port: 6603
   user: "root"
-  password: "123456"
-  database: "flamingo"
+  password: "talko_root"
+  database: "talko_server"

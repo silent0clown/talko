@@ -36,9 +36,9 @@ public:
                 try {
                     std::apply(std::move(f), std::move(args));
                 } catch (const std::exception& e) {
-                    TALKO_LOG_ERROR("Task execution failed: " , e.what());
+                    WHISP_LOG_ERROR("Task execution failed: " , e.what());
                 } catch (...) {
-                    TALKO_LOG_ERROR("Unknown exception in task execution.");
+                    WHISP_LOG_ERROR("Unknown exception in task execution.");
                 }
             });
         }

@@ -44,7 +44,7 @@ bool WhispUserDAO::InsertUser(const UserInfo& user,
     ResolveParams(&conn, &schema, &table, conn_override, schema_override, table_override);
 
     if (!conn || schema.empty() || table.empty()) {
-        TALKO_LOG_WARN("Invalid database parameters");
+        WHISP_LOG_WARN("Invalid database parameters");
         return false;
     }
 
@@ -59,7 +59,7 @@ bool WhispUserDAO::InsertUser(const UserInfo& user,
             user.region, user.status, GetCurrentDateTime()
         ).execute();
 
-        TALKO_LOG_DEBUG("Inserted user: " + user.username);
+        WHISP_LOG_DEBUG("Inserted user: " + user.username);
         return true;
     } catch (const mysqlx::Error& e) {
         HandleError("Insert failed: ", e);
@@ -95,7 +95,7 @@ std::unique_ptr<UserInfo> WhispUserDAO::GetUserById(
     ResolveParams(&conn, &schema, &table, conn_override, schema_override, table_override);
 
     if (!conn || schema.empty() || table.empty()) {
-        TALKO_LOG_WARN("Invalid database parameters");
+        WHISP_LOG_WARN("Invalid database parameters");
         return nullptr;
     }
 
@@ -120,7 +120,7 @@ std::unique_ptr<UserInfo> WhispUserDAO::GetUserById(
 // 更新用户信息
 bool WhispUserDAO::UpdateUser(const UserInfo& user, mysqlx::Session* session, const std::string& DBschema, const std::string& DBtable) {
     if (!session || DBschema.empty() || DBtable.empty()) {
-        TALKO_LOG_WARN("Invalid database session");
+        WHISP_LOG_WARN("Invalid database session");
         return false;
     }
 
@@ -142,7 +142,7 @@ bool WhispUserDAO::UpdateUser(const UserInfo& user, mysqlx::Session* session, co
                 .bind("id", user.id)
                 .execute();
 
-        TALKO_LOG_INFO("User with ID " + std::to_string(user.id) + " updated successfully.");
+        WHISP_LOG_INFO("User with ID " + std::to_string(user.id) + " updated successfully.");
         return true;
     } catch (const mysqlx::Error& e) {
         HandleError("Error updating user: ", e);
@@ -153,7 +153,7 @@ bool WhispUserDAO::UpdateUser(const UserInfo& user, mysqlx::Session* session, co
 // 删除用户
 bool WhispUserDAO::DeleteUser(int user_id, mysqlx::Session* session, const std::string& DBschema, const std::string& DBtable) {
     if (!session || DBschema.empty() || DBtable.empty()) {
-        TALKO_LOG_WARN("Invalid database session");
+        WHISP_LOG_WARN("Invalid database session");
         return false;
     }
 
@@ -165,7 +165,7 @@ bool WhispUserDAO::DeleteUser(int user_id, mysqlx::Session* session, const std::
         // 删除用户
         userTable.remove().where("id = :id").bind("id", user_id).execute();
 
-        TALKO_LOG_INFO("User with ID " + std::to_string(user_id) + " deleted successfully.");
+        WHISP_LOG_INFO("User with ID " + std::to_string(user_id) + " deleted successfully.");
         return true;
     } catch (const mysqlx::Error& e) {
         HandleError("Error deleting user: ", e);
@@ -200,5 +200,5 @@ UserInfo WhispUserDAO::ParseUser(const mysqlx::Row& row) {
 
 // 统一错误处理
 void WhispUserDAO::HandleError(const std::string& message, const mysqlx::Error& e) const {
-    TALKO_LOG_ERROR(message + e.what());
+    WHISP_LOG_ERROR(message + e.what());
 }

@@ -23,26 +23,26 @@ public:
 
         int success_count = 0;
         // for (int i = 0; i < pool_size_; ++i) {
-        TALKO_LOG_DEBUG(" Enter MySQLConnectPool init ");
+        WHISP_LOG_DEBUG(" Enter MySQLConnectPool init ");
         while (conn_pool_.size() < pool_size_ ) {
             try {
                 mysqlx::Session session(host, port, user, passwd, dbname);
                 conn_pool_.push(std::make_unique<mysqlx::Session>(std::move(session)));
                 success_count++;
             } catch (const mysqlx::Error& err) {
-                TALKO_LOG_ERROR("MySQL 连接失败: ", err.what());
+                WHISP_LOG_ERROR("MySQL 连接失败: ", err.what());
             }
         }
         if (success_count == 0 && conn_pool_.size() == pool_size_) {
-            TALKO_LOG_WARN("pool size is full");
+            WHISP_LOG_WARN("pool size is full");
             return;
         }
 
         if (success_count == 0) {
-            TALKO_LOG_ERROR("无法初始化任何 MySQL 连接");
+            WHISP_LOG_ERROR("无法初始化任何 MySQL 连接");
             throw std::runtime_error("无法初始化任何 MySQL 连接");
         }
-        TALKO_LOG_INFO("初始化连接池成功，连接数： ", success_count);
+        WHISP_LOG_INFO("初始化连接池成功，连接数： ", success_count);
     }
 
     /*
