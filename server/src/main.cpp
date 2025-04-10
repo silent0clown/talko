@@ -220,7 +220,12 @@ int main(int argc, char* argv[])
     //      mysqlConnPool->release_conn(conn);
     //  }
 
-    // 开始监听
+    // 开启服务port监听
+    const std::string listen_ip = whisp_config.http_config.http_listen_ip;
+    const int listen_port     = whisp_config.http_config.http_listen_port;
+    
+
+
  
      // 程序结束时，连接池会被销毁并释放资源
 
