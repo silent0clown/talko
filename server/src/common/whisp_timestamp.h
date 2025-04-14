@@ -125,7 +125,7 @@ inline double timeDifference(Timestamp high, Timestamp low)
 ///
 /// @return timestamp+seconds as Timestamp
 ///
-inline Timestamp addTime(Timestamp timestamp, int64_t microseconds)
+inline Timestamp add_time(Timestamp timestamp, int64_t microseconds)
 {
     //int64_t delta = static_cast<int64_t>(seconds * Timestamp::kMicroSecondsPerSecond);
     return Timestamp(timestamp.microSecondsSinceEpoch() + microseconds);
